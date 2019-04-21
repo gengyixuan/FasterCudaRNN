@@ -8,7 +8,7 @@ class cache_lstmFunction(torch.autograd.Function):
     @staticmethod
     def forward(ctx, XU, W, h0, c0):
         # XU: (T, B, 4Dh)
-        # W: (4Dh, Dh)
+        # W:  (4Dh, Dh)
         # h0: (1, B, Dh)
         # c0: (B, Dh)
         h, cT = cache_lstm.forward(XU, W, h0, c0)
@@ -34,9 +34,9 @@ class cacheLSTM(torch.nn.Module):
         self.W = torch.nn.Parameter(torch.empty(4 * Dh, Dh))
         self.reset_parameters()
 
-    def setUW(self, U, W):
-        self.U.data = U
-        self.W.data = W
+    def setUW(self, init_U, init_W):
+        self.U = torch.nn.Parameter(init_U)
+        self.W = torch.nn.Parameter(init_W)
 
     def reset_parameters(self):
         stdv = 1.0 / math.sqrt(self.Dh)

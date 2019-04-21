@@ -57,6 +57,7 @@ __global__ void cache_lstm_forward_kernel(
   const size_t B_Dh = B * Dh;
   const size_t B_Dh_4 = B_Dh * 4;
   const size_t b_Dh = batch_id * Dh;
+  const size_t b_Dh_4 = b_Dh * 4;
 
 
   //extern __shared__ scalar_t shared_mem[];
@@ -67,7 +68,7 @@ __global__ void cache_lstm_forward_kernel(
 
   // load weight vector used by current thread throughout time
   // *we set weight vector to be max 70 length, other than that we will exceed register cache capacity
-  const int W_start = thread_id * Dh;
+  const size_t W_start = thread_id * Dh;
   scalar_t weights[70];
   memcpy(weights, &W[W_start], Dh * sizeof(scalar_t));
 
@@ -79,7 +80,7 @@ __global__ void cache_lstm_forward_kernel(
   }
 
   scalar_t xu; 
-  size_t XU_start = b_Dh + thread_id;
+  size_t XU_start = b_Dh_4 + thread_id;
   
   // start iterating through time
   for (int t = 0; t < T; t++) {
@@ -89,9 +90,6 @@ __global__ void cache_lstm_forward_kernel(
     // get corresponding XU element
     xu = XU[XU_start];
     XU_start += B_Dh_4; 
-    
-    // sync
-    __syncthreads();
 
     // -----------------------------------------------------
     // step 2: compute ht * weights + xu = gate
@@ -125,7 +123,7 @@ __global__ void cache_lstm_forward_kernel(
       scalar_t cbar = gates[thread_id + Dh + Dh + Dh];
 
       // compute new_c, new_h and write new_h to shared memory & global memory
-      prev_c = sigmoid(ff * prev_c + gate * cbar);
+      prev_c = ff * prev_c + gate * cbar; // no sigmoid
       scalar_t new_h = tanh(prev_c) * oo;
       ht[thread_id] = new_h;
       h[(t+1) * B_Dh + b_Dh + thread_id] = new_h;
@@ -135,6 +133,7 @@ __global__ void cache_lstm_forward_kernel(
 
   }
 
+  
   // in the end, prev_c will be the cT value, write prev_c to c0 for output
   if (thread_id < Dh) {
     c0[b_Dh + thread_id] = prev_c; 
