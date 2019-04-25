@@ -78,7 +78,10 @@ __global__ void cache_lstm_forward_kernel(
     prev_c = c0[b_Dh + thread_id];
     ht[thread_id] = h[b_Dh + thread_id];
   }
+  // sync
+  __syncthreads();
 
+  
   scalar_t xu; 
   size_t XU_start = b_Dh_4 + thread_id;
   
@@ -86,8 +89,7 @@ __global__ void cache_lstm_forward_kernel(
   for (int t = 0; t < T; t++) {
 
     // ----------------------------------------------------
-    // step 1: load data into shared
-    // get corresponding XU element
+    // step 1: get corresponding XU element
     xu = XU[XU_start];
     XU_start += B_Dh_4; 
 

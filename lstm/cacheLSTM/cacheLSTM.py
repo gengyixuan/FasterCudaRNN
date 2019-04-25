@@ -49,6 +49,4 @@ class cacheLSTM(torch.nn.Module):
     def forward(self, X, h0, c0):
         h0 = h0.unsqueeze(0)
         XU = torch.matmul(X, self.U) # (T, B, Di) x (Di, 4Dh) -> (T, B, 4Dh)
-        print(XU.shape)
-        #return XU # can finish in 0.1 us
         return cache_lstmFunction.apply(XU, self.W, h0, c0)
