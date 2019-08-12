@@ -6,6 +6,9 @@ Developed a faster LSTM CUDA kernel using batch-wise parallelism and gpu kernel 
 latency and using an efficient memory access pattern to minimize memory access latency.
 ## Impact
 Achieved 4X speedup in inference speed compared to the state-of-the-art Cudnn LSTM kernel on GPU.
+## Performance
+speedup against cudnn LSTM, running on Nvidia GTX-1080)
+![Screenshot](result.png)
 
-## Performance (compared to cudnn LSTM, running on Nvidia GTX-1080)
-![Test Image 4](https://github.com/tograh/testrepository/3DTest.png)
+## Author
+Yixuan Geng, Chen Liang
